@@ -1,0 +1,7 @@
+
+PAYMENT_TYPE_WALLET = "wallet"
+PAYMENT_TYPE_CREDIT_CARD = "credit_card"
+PAYMENT_TYPE_PAYNOW = "paynow"
+
+PAYMENT_DESC_ORDER = "order"
+PAYMENT_DESC_PAYNOW_TOPUP = "paynow topup"

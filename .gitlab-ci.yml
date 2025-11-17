@@ -1,0 +1,65 @@
+image: tiangolo/docker-with-compose
+
+stages:
+    - build
+
+variables:
+    test: "Testing"
+
+before_script:
+    - "echo gitlab runner initialize for commit $CI_COMMIT_SHA"
+
+build-uat:
+  stage: build
+  environment:
+    name: uat
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+    - echo $KUBE_NAMESPACE
+    
+  script:
+    - echo $CI_COMMIT_SHA
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  rules:
+    - if: $CI_COMMIT_BRANCH == "uat" || $CI_COMMIT_BRANCH == "test"
+
+build-staging:
+  stage: build
+  environment:
+    name: staging
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [ "" ]
+  before_script:
+    - echo $KUBE_NAMESPACE
+
+  script:
+    - echo $CI_COMMIT_SHA
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  rules:
+    - if: $CI_COMMIT_BRANCH == "staging"
+
+
+build-production:
+  stage: build
+  environment:
+    name: production
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [ "" ]
+  before_script:
+    - echo $KUBE_NAMESPACE
+
+  script:
+    - echo $CI_COMMIT_SHA
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
