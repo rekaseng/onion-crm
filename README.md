@@ -1,55 +1,103 @@
-### Installation
-Install poetry on your machine. Then run "poetry install" on this folder.
 
-Next set the python path before running the app or upgrade db. see below on setting python path
+#  Onion CRM Backend  
+A backend built using **FastAPI**, **Poetry**, **Alembic**, and **PostgreSQL**, following a clean `/src` architecture.
 
-To add new library run poetry add
-```poetry add pyserial```
+This guide provides everything you need to install, run, and maintain the backend.
 
-### DB Migration
+---
 
-Create a model in models folder (as user.py)
+## 📦 1. Installation
 
-1) Import new model in alembic/env.py
+### Install Poetry (if not already installed)
 
-Use the following command to create a new migration file in alembic-migration/versions folder. 
-This command needs to be run on root folder:
+```bash
+pip install poetry
+```
 
-WINDOWS
+### Install project dependencies
+Inside the project folder:
+
+```bash
+poetry install
+```
+This will install everything required from pyproject.toml.
+
+### Enter the Poetry virtual environment
+
+```bash
+poetry shell
+```
+
+## 🐍 2. Set PYTHONPATH
+
+The project uses a clean /src folder structure.
+Set the environment variable before running the app or Alembic migrations.
+
+## 🗄️ 3. Database Migration (Alembic)
+### Step 1 — Create your model
+Create your new model inside:
+```bash
+src/models/<model_name>.py
+```
+
+### Step 2 — Import model into Alembic environment
+Edit:
+```bash
+alembic/env.py
+```
+Add your new model import so Alembic can detect schema changes.
+
+## Generate a migration file
+
+### Windows (PowerShell)
+```bash
 $env:PYTHONPATH="src"
 $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-alembic revision  --autogenerate --rev-id=$timestamp -m "add_user"
+alembic revision --autogenerate --rev-id=$timestamp -m "add_model"
+```
+### Linux / macOS
+```bash
+export PYTHONPATH=src
+alembic revision --autogenerate --rev-id=$(date +%Y%m%d%H%M%S) -m "add_model"
+```
+NOTE: Your Alembic connection string should NOT contain asyncpg.
+Only the running FastAPI app should use asyncpg, not Alembic.
+### Apply migration to database
+```bash
+alembic upgrade head
+```
+### Revert last migration
+```bash
+alembic downgrade -1
+```
+## ▶️ 4. Running the Application
+### Step 1 — Create .env
+Copy:
+```bash
+.env.sample → .env
+```
+Fill in your database credentials and application settings.
 
-LINUX
-alembic revision  --autogenerate --rev-id=$(date +%Y%m%d%H%M%S) -m "add_user"
-
-(Note: the env should not have "asyncpg" in the connection string. "asyncpg" is for when the app runs)
-
-Then use the following command to update the new migration file to db:
-```alembic upgrade head```
-
-If need to undo use the following command to revert the current migration file in db(check alembic_version table to see current migration file is updating in the db):
-```alembic downgrade -1```
-
-To delete migration file. manually delete it from alembic-migration/versions folder.
-
-### To run
-create .env file from sample and put credentials in it.
-
-set PYTHONPATH=src
+### Step 2 — Start the FastAPI server (with auto reload)
+### Windows (PowerShell)
+```bash
+$env:PYTHONPATH="src"
 poetry shell
 uvicorn main:app --reload
+```
+### Linux / macOS
+```bash
+export PYTHONPATH=src
+poetry shell
+uvicorn main:app --reload
+```
+FastAPI will now serve at:
+➡️ http://127.0.0.1:8000
 
-### Testing
-set path on windows cmd:
-set PYTHONPATH=src
+➡️ Swagger docs: http://127.0.0.1:8000/docs
 
-set path on windows powershell:
-$env:PYTHONPATH="src"
-
-set path on linux:
-export PYTHONPATH=/apps/fridge-app/src
-
-### IDE
-if using pycharm, need to add "src" folder to be "Sources Root"
-right click on the "src" and choose "Mark Directory As" then "Sources Root"
+## 🧪 5. Running Tests
+Set PYTHONPATH first (same instructions above), then:
+```bash
+pytest
+```
